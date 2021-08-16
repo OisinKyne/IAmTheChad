@@ -7,6 +7,7 @@
 
 const path = require(`path`)
 const fetch = require(`node-fetch`)
+var ethers = require('ethers');
 
 // Helper function to timeout the fetch api if the backend is down such that the request hangs
 function timeoutPromise(ms, promise) {
@@ -71,6 +72,9 @@ exports.sourceNodes = async ({
   let shouldBreak = false;
   let fameIndex = 0
   const hallOfFamers = []
+  const hallOfFamersENS = []
+  // Use CloudFlare Provider to reverse resolve for ENS name
+  var provider = new ethers.providers.CloudflareProvider();
   while(!shouldBreak){
     // console.log(`Searching hallOfFame array at index ${fameIndex}`)
     const result = await fetch(`https://mainnet.infura.io/v3/339520a08e3446cc8bf2f008d7de8339`,{
@@ -85,6 +89,9 @@ exports.sourceNodes = async ({
       const address = `0x`+resultData.result.substring(resultData.result.length-40, resultData.result.length)
       // console.log(`\n\nAddress: ${address}`)
       hallOfFamers.push(address)
+      const name = await provider.lookupAddress(address);
+      // console.log(`\n\nNane: ${name}`)
+      hallOfFamersENS.push(name)
     } else {
       // console.log(`Failed to get a result from the hall of fame API call, exiting loop`)
       shouldBreak = true
@@ -94,6 +101,7 @@ exports.sourceNodes = async ({
   // Push the hall of fame to the gatsby graph
   createNode({
     hallOfFamers: hallOfFamers,
+    hallOfFamersENS: hallOfFamersENS,
     // required fields
     id: `hallOfFamers`,
     parent: null,

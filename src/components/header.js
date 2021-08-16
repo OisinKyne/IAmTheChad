@@ -137,6 +137,7 @@ export default function Header({ siteTitle, siteDescription }) {
       }
       hof {
         hallOfFamers
+        hallOfFamersENS
       }
     }
   `)
@@ -222,7 +223,8 @@ export default function Header({ siteTitle, siteDescription }) {
                     target="_blank"
                     // color="inherit"
                     className={classes.hallOfFameLink}>
-                    {hof.substring(0, 12) + "..." + hof.substring(hof.length - 12, hof.length)}
+                    {data.hof.hallOfFamersENS[index] ? data.hof.hallOfFamersENS[index] : 
+                        hof.substring(0, 12) + "..." + hof.substring(hof.length - 12, hof.length)}
                   </Link>
                 </Typography>
               )
