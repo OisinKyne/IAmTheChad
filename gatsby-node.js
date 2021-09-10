@@ -6,7 +6,9 @@
  */
 
 const path = require(`path`)
+const ethers = require(`ethers`)
 const fetch = require(`node-fetch`)
+const contractABI = require('./src/config/IAmTheChadABI.json')
 
 // Helper function to timeout the fetch api if the backend is down such that the request hangs
 function timeoutPromise(ms, promise) {
@@ -31,11 +33,35 @@ function timeoutPromise(ms, promise) {
   })
 }
 
+// This function populates Data from the IAmTheChad NFT and ENS into the Gatsby Build Pipeline Data Layer
+//
 // Grab hall of fame + basefee + tokenURI from IAmTheChad contract at build time. 
+// Does ens reverseResolution on each hall of famer for an ENS name.
 exports.sourceNodes = async ({
   actions: { createNode },
   createContentDigest,
 }) => {
+  // prep ethers object with an infura provider
+  const ether = ethers.getDefaultProvider('mainnet', {infura: '339520a08e3446cc8bf2f008d7de8339'})
+  const iAmTheChadContract = new ethers.Contract(`0x621a6d60c7c16a1ac9bba9cc61464a16b43cac51`, contractABI, ether)
+
+  // Get the IAmTheChad metadata
+  const chadMetadata = await iAmTheChadContract.functions.tokenURI(1)
+  // console.log(chadMetadata)
+  // Save this data to the Gatsby Graph for later use in static site construction
+  createNode({
+    tokenMetadata: chadMetadata,
+    // required fields
+    id: `tokenMetadata`,
+    parent: null,
+    children: [],
+    internal: {
+      type: `TokenMetadata`,
+      contentDigest: createContentDigest(chadMetadata),
+    },
+  })
+
+
   // get reownBasefee
   const result = await fetch(`https://mainnet.infura.io/v3/339520a08e3446cc8bf2f008d7de8339`,{
     method: 'POST',
@@ -84,13 +110,16 @@ exports.sourceNodes = async ({
       // console.log(`Retrieved another hall of famer address:  ${resultData.result}`)
       const address = `0x`+resultData.result.substring(resultData.result.length-40, resultData.result.length)
       // console.log(`\n\nAddress: ${address}`)
-      hallOfFamers.push(address)
+      const ensName = await ether.lookupAddress(address)
+      // console.log(`\n\nENS name for hall of famer: ${ensName}`)
+      hallOfFamers.push({address, ensName})
     } else {
       // console.log(`Failed to get a result from the hall of fame API call, exiting loop`)
       shouldBreak = true
     }
     fameIndex += 1
   }
+
   // Push the hall of fame to the gatsby graph
   createNode({
     hallOfFamers: hallOfFamers,

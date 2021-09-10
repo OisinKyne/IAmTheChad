@@ -1,6 +1,6 @@
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import React from "react"
-import { AppBar, Button, Grid, Toolbar } from "@material-ui/core"
+import { AppBar, Button, Card, Grid, Toolbar } from "@material-ui/core"
 import { Link, useStaticQuery, graphql } from 'gatsby';
 import { StaticImage } from 'gatsby-plugin-image';
 import { Typography } from '@material-ui/core';
@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme) =>
     bg_image: {
       gridArea: "1/1",
       minHeight: '100vh',
-      maxHeight: '100vh',
+      // height: '100vh',
       backgroundColor: '#fff',
       borderRadius: `1em`
     },
@@ -66,14 +66,14 @@ const useStyles = makeStyles((theme) =>
       // backgroundColor: `rgba(75,75,75, 0.2)`,
       gridArea: '1/1',
       position: 'relative',
-      placeItems: 'center',
+      placeItems: 'auto center',
       display: 'grid',
       boxShadow: 'none'
       // opacity: 0.72
     },
     toolbar: {
       minHeight: 450,
-      height: '97vh',
+      // height: '97vh',
       width: '100%',
       alignItems: 'flex-start',
       justifyContent: 'flex-end',
@@ -92,24 +92,28 @@ const useStyles = makeStyles((theme) =>
     },
     title: {
       alignSelf: 'center',
-      font: "normal normal normal 42px/48px Montserrat",
+      font: "normal normal 400 32px/36px Montserrat",
       color: '#000',
       // backgroundColor: 'red',
       [theme.breakpoints.up('md')]: {
-        font: "normal normal normal 64px/72px Montserrat",
+        font: "normal normal 400 42px/48px Montserrat",
       },
     },
     subtitle: {
       alignSelf: 'center',
       textAlign: 'center',
       margin: 'auto',
-      font: "normal normal 500 26px/34px Montserrat",
+      font: "normal normal 400 26px/34px Montserrat",
       color: '#000',
       // textShadow: `0px 0px 5px #fff`,
       // backgroundColor: 'green',
       [theme.breakpoints.up('lg')]: {
-        font: "normal normal 500 36px/48px Montserrat",
+        font: "normal normal 400 36px/48px Montserrat",
       },
+    },
+    chadNFTImg: {
+      alignSelf: 'center',
+      textAlign: 'center',
     },
     hallOfFameDiv: {
       alignSelf: 'center',
@@ -136,13 +140,36 @@ export default function Header({ siteTitle, siteDescription }) {
         wei
       }
       hof {
-        hallOfFamers
+        hallOfFamers {
+          address
+          ensName
+        }
+      }
+      tokenMetadata {
+        id
+        tokenMetadata
       }
     }
   `)
 
   console.log(`Gatsby grapql query returned: `)
   console.log(data)
+  const tokenMetadataURI = decodeURI(data.tokenMetadata.tokenMetadata[0])
+  const tokenMetadata = tokenMetadataURI.substring(tokenMetadataURI.indexOf(',') + 1)
+  console.log(data.tokenMetadata.tokenMetadata[0])
+  console.log(tokenMetadataURI)
+  console.log(tokenMetadata)
+  const cleanedMetadata = JSON.parse(tokenMetadata.replace(/%3A/g, `:`,))
+  console.log(cleanedMetadata)
+  // JSON.parse(cleanedMetadata)
+  // console.log()
+
+  console.log(cleanedMetadata.image)
+  // Figure out current chad and form the title
+  const chad = data.hof.hallOfFamers[data.hof.hallOfFamers.length-1]
+  const chadParsed = (chad.ensName? chad.ensName : chad.address.substring(0,6) + '...' + chad.address.substring(chad.address.length-5, chad.address.length-1))
+  console.log(chad)
+  
 
   return (
     <div className={classes.root}>
@@ -185,12 +212,21 @@ export default function Header({ siteTitle, siteDescription }) {
             </Grid>
           </Grid>
           {/* <div className={classes.obolLogo} /> */}
-          <Typography className={classes.title} variant="h5">
-            {siteTitle}
+          <Typography className={classes.title} variant="h4" gutterBottom>
+          <Link
+                    to={`https://etherscan.io/address/${chad.address}`}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    // color="inherit"
+                    className={classes.hallOfFameLink}>{chadParsed}</Link> {" "} is the Chad!
           </Typography>
-          <Typography className={classes.subtitle} variant="h5" >
+          {/* <Typography className={classes.subtitle} variant="h5" >
             {siteDescription}
-          </Typography>
+          </Typography> */}
+          {/* Embed the Chad NFT image */}
+
+          <img src={cleanedMetadata.image} className={classes.chadNFTImg} />
+
           {!!data.basefee && !!data.hof && (
             <Grid container className={classes.infoButtons}><Grid item>
               <Button
@@ -213,16 +249,20 @@ export default function Header({ siteTitle, siteDescription }) {
             <Typography className={classes.subtitle} variant="h5" >
               The Fallen Chads
             </Typography>
-            {data.hof.hallOfFamers.slice(0, data.hof.hallOfFamers.length - 1).map((/** @type {string} */ hof, /** @type {number} */ index) => {
+            {data.hof.hallOfFamers.slice(0, data.hof.hallOfFamers.length - 1).map((hof, /** @type {number} */ index) => {
               return (
                 <Typography className={classes.hallOfFameAddress} variant={"body2"} gutterBottom>{index + 1}.{" "}
                   <Link
-                    to={`https://etherscan.io/address/${hof}`}
+                    to={`https://etherscan.io/address/${hof.address}`}
                     rel="noopener noreferrer"
                     target="_blank"
                     // color="inherit"
                     className={classes.hallOfFameLink}>
-                    {hof.substring(0, 12) + "..." + hof.substring(hof.length - 12, hof.length)}
+
+                    {
+                      // If this hall of famer has an ensName, display that, otherwise display a shortened address
+                      !!hof.ensName ? hof.ensName : hof.address.substring(0, 12) + "..." + hof.address.substring(hof.address.length - 12, hof.address.length)
+                    }
                   </Link>
                 </Typography>
               )
