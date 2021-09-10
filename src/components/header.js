@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme) =>
     },
     bg_image: {
       gridArea: "1/1",
-      minHeight: '100vh',
+      minHeight: '97vh',
       // height: '100vh',
       backgroundColor: '#fff',
       borderRadius: `1em`
@@ -92,6 +92,7 @@ const useStyles = makeStyles((theme) =>
     },
     title: {
       alignSelf: 'center',
+      textAlign: 'center',
       font: "normal normal 400 32px/36px Montserrat",
       color: '#000',
       // backgroundColor: 'red',
