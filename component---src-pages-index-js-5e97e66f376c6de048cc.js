@@ -1,0 +1,2 @@
+(self.webpackChunkIAmTheChad=self.webpackChunkIAmTheChad||[]).push([[678],{9290:function(e,t,n){"use strict";n.r(t),n.d(t,{default:function(){return r}});var a=n(7294),u=n(7998),h=n(9709);function r(e){e.data;return a.createElement(u.Z,null,a.createElement(h.Z,{title:"I'm the Chad! - The basefee NFT"}))}}}]);
+//# sourceMappingURL=component---src-pages-index-js-5e97e66f376c6de048cc.js.map
